@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin & Win - Premium Edition</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>✨ Spin & Win! ✨</h1>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel">
+            <div class="wheel-inner">
+                <div class="segment"></div>
+                <div class="segment"></div>
+                <div class="segment"></div>
+                <div class="segment"></div>
+                <div class="segment"></div>
+                <div class="segment"></div>
+            </div>
+            <div class="text-overlay">
+                <div class="label"><span>BETTER LUCK</span></div>
+                <div class="label"><span>50% OFF</span></div>
+                <div class="label"><span>BETTER LUCK</span></div>
+                <div class="label"><span>100% OFF</span></div>
+                <div class="label"><span>BETTER LUCK</span></div>
+                <div class="label"><span>50% OFF</span></div>
+            </div>
+        </div>
+        <div class="center-circle">🎯</div>
+    </div>
+
+    <button class="spin-btn" id="spinBtn" onclick="spinWheel()">SPIN</button>
+
+    <div class="popup-overlay" id="popup">
+        <div class="popup" id="popupBox">
+            <div class="popup-icon" id="popupIcon"></div>
+            <h2 id="popupTitle"></h2>
+            <p id="popupMsg"></p>
+            <div class="discount-code" id="discountCode" style="display:none;">
+                <span id="codeText"></span>
+            </div>
+            <button class="popup-btn" onclick="closePopup()">Play Again</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
