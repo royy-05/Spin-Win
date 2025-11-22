@@ -1,170 +1,111 @@
-     // Configuration
-        const CONFIG = {
-            SEGMENTS: 6,
-            SPIN_DURATION: 5000,
-            MIN_SPINS: 5,
-            MAX_SPINS: 8,
-            CONFETTI_COUNT: 80,
-            CONFETTI_DURATION: 4000
-        };
+            let isSpinning = false;
 
-        const PRIZES = {
-            LOSE: {
-                segments: [0, 2, 4],
-                probability: 50,
-                title: "Better Luck Next Time!",
-                message: "Don't give up! Spin again for another chance to win amazing discounts!",
-                icon: "😢",
-                type: "loser",
-                code: null
-            },
-            WIN_50: {
-                segments: [1, 5],
-                probability: 30,
-                title: "🎉 You Won 50% OFF! 🎉",
-                message: "Congratulations! Use the code below to get 50% off your next purchase!",
-                icon: "🥳",
-                type: "winner",
-                code: "SAVE50"
-            },
-            JACKPOT: {
-                segments: [3],
-                probability: 20,
-                title: "🏆 JACKPOT! 100% OFF! 🏆",
-                message: "AMAZING! You hit the jackpot! Your next purchase is completely FREE!",
-                icon: "🎊",
-                type: "jackpot",
-                code: "FREE100"
+        // Prize configuration with probabilities
+        const prizes = [
+            { name: "Better Luck Next Time", probability: 0.50, icon: "😢", segments: [0, 2, 4] },
+            { name: "50% OFF", probability: 0.30, icon: "🎁", segments: [1, 5] },
+            { name: "100% OFF", probability: 0.20, icon: "🎉", segments: [3] }
+        ];
+
+        function getRandomPrize() {
+            const random = Math.random();
+            let cumulativeProbability = 0;
+            
+            for (let prize of prizes) {
+                cumulativeProbability += prize.probability;
+                if (random <= cumulativeProbability) {
+                    const segmentIndex = prize.segments[Math.floor(Math.random() * prize.segments.length)];
+                    return { prize, segmentIndex };
+                }
             }
-        };
+            
+            return { prize: prizes[0], segmentIndex: 0 };
+        }
 
-        // State management
-        let state = {
-            isSpinning: false,
-            currentRotation: 0
-        };
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            const spinButton = document.getElementById('spinButton');
+            const wheel = document.getElementById('wheel');
+            
+            spinButton.disabled = true;
+            spinButton.textContent = '🎪 SPINNING...';
+            
+            const { prize, segmentIndex } = getRandomPrize();
+            
+            const segmentAngle = 360 / 6;
+            const targetRotation = (segmentIndex * segmentAngle) + (segmentAngle / 2);
+            const spins = 5;
+            const totalRotation = (spins * 360) + (360 - targetRotation);
+            
+            wheel.classList.add('spinning');
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+            
+            setTimeout(() => {
+                showResult(prize);
+                isSpinning = false;
+                spinButton.disabled = false;
+                spinButton.textContent = '🎯 SPIN NOW';
+                wheel.classList.remove('spinning');
+            }, 4000);
+        }
 
-        // Get weighted random result
-        function getWeightedResult() {
-            const random = Math.random() * 100;
-
-            if (random < PRIZES.LOSE.probability) {
-                return createResult(PRIZES.LOSE);
-            } else if (random < PRIZES.LOSE.probability + PRIZES.WIN_50.probability) {
-                return createResult(PRIZES.WIN_50);
+        function showResult(prize) {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const message = document.getElementById('resultMessage');
+            
+            icon.textContent = prize.icon;
+            
+            if (prize.name === "Better Luck Next Time") {
+                title.textContent = "Better Luck Next Time!";
+                message.textContent = "Don't give up! Try spinning again for another chance to win!";
+            } else if (prize.name === "50% OFF") {
+                title.textContent = "🎊 Congratulations! 🎊";
+                message.textContent = "You won 50% OFF on your next purchase!";
+                createConfetti();
             } else {
-                return createResult(PRIZES.JACKPOT);
+                title.textContent = "🏆 JACKPOT! 🏆";
+                message.textContent = "Amazing! You won 100% OFF - It's FREE!";
+                createConfetti();
             }
+            
+            modal.classList.add('show');
         }
 
-        // Create result object
-        function createResult(prize) {
-            const segments = prize.segments;
-            const segment = segments[Math.floor(Math.random() * segments.length)];
-
-            return {
-                segment,
-                title: prize.title,
-                message: prize.message,
-                icon: prize.icon,
-                type: prize.type,
-                code: prize.code
-            };
+        function closeModal() {
+            const modal = document.getElementById('resultModal');
+            modal.classList.remove('show');
+            
+            const wheel = document.getElementById('wheel');
+            wheel.style.transition = 'none';
+            wheel.style.transform = 'rotate(0deg)';
+            setTimeout(() => {
+                wheel.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+            }, 50);
         }
 
-        // Create confetti animation
         function createConfetti() {
-            const colors = [
-                '#FF6B6B', '#4ECDC4', '#FFE66D',
-                '#95E1D3', '#DDA0DD', '#F38181',
-                '#FFD700', '#FF69B4', '#87CEEB'
-            ];
-
-            for (let i = 0; i < CONFIG.CONFETTI_COUNT; i++) {
+            const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#ffd93d', '#a8e6cf', '#ff8c94'];
+            
+            for (let i = 0; i < 50; i++) {
                 setTimeout(() => {
                     const confetti = document.createElement('div');
                     confetti.className = 'confetti';
-
-                    // Random properties
-                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.left = Math.random() * 100 + '%';
                     confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-                    confetti.style.width = (Math.random() * 12 + 6) + 'px';
-                    confetti.style.height = (Math.random() * 12 + 6) + 'px';
-                    confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
-                    confetti.style.animationDelay = (Math.random() * 0.5) + 's';
-
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
                     document.body.appendChild(confetti);
-
-                    setTimeout(() => confetti.remove(), CONFIG.CONFETTI_DURATION);
-                }, i * 25);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
             }
         }
 
-        // Main spin function
-        function spinWheel() {
-            if (state.isSpinning) return;
-
-            state.isSpinning = true;
-            const spinBtn = document.getElementById('spinBtn');
-            spinBtn.disabled = true;
-            spinBtn.textContent = 'SPINNING...';
-
-            const result = getWeightedResult();
-            const segmentAngle = 360 / CONFIG.SEGMENTS;
-            const targetAngle = 360 - (result.segment * segmentAngle + segmentAngle / 2);
-            const spins = CONFIG.MIN_SPINS + Math.floor(Math.random() * (CONFIG.MAX_SPINS - CONFIG.MIN_SPINS));
-            const finalRotation = state.currentRotation + (spins * 360) + targetAngle - (state.currentRotation % 360);
-
-            const wheel = document.getElementById('wheel');
-            wheel.style.transform = `rotate(${finalRotation}deg)`;
-            state.currentRotation = finalRotation;
-
-            setTimeout(() => {
-                showPopup(result);
-                state.isSpinning = false;
-                spinBtn.disabled = false;
-                spinBtn.textContent = 'SPIN';
-            }, CONFIG.SPIN_DURATION);
-        }
-
-        // Show popup with result
-        function showPopup(result) {
-            const popup = document.getElementById('popupBox');
-            popup.className = 'popup ' + result.type;
-
-            document.getElementById('popupIcon').textContent = result.icon;
-            document.getElementById('popupTitle').textContent = result.title;
-            document.getElementById('popupMsg').textContent = result.message;
-
-            const codeDiv = document.getElementById('discountCode');
-            const codeText = document.getElementById('codeText');
-
-            if (result.code) {
-                codeDiv.style.display = 'inline-block';
-                codeText.textContent = result.code;
-                createConfetti();
-            } else {
-                codeDiv.style.display = 'none';
-            }
-
-            document.getElementById('popup').classList.add('show');
-        }
-
-        // Close popup
-        function closePopup() {
-            document.getElementById('popup').classList.remove('show');
-        }
-
-        // Keyboard support
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                if (!state.isSpinning) {
-                    e.preventDefault();
-                    spinWheel();
-                }
-            }
-            if (e.key === 'Escape') {
-                closePopup();
+        document.getElementById('resultModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
             }
         });
